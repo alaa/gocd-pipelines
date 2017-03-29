@@ -1,0 +1,41 @@
+{
+  "name": "deploy-env-template",
+  "stages": [
+  {
+    "name": "deploy",
+    "fetch_materials": true,
+    "clean_working_directory": false,
+    "never_cleanup_artifacts": false,
+    "environment_variables": [],
+    "jobs": [
+    {
+      "name": "deploy-to-marathon",
+      "run_instance_count": null,
+      "elastic_profile_id": null,
+      "timeout": 0,
+      "environment_variables": [],
+      "resources": [],
+      "tasks": [
+      {
+        "type": "fetch",
+        "attributes": {
+          "pipeline": "#{PIPELINE}",
+          "stage": "#{STAGE}",
+          "job": "#{JOB}",
+          "source": "artifact.txt",
+          "run_if": ["passed"]
+        }
+      },
+      {
+        "type": "exec",
+        "attributes": {
+          "command": "cat $(artifact.txt)",
+          "working_directory": null
+        }
+      }
+      ]
+    }
+    ]
+  }
+  ]
+}
