@@ -20,8 +20,6 @@ module GOCD
             stages: stages
           }
         }.to_json
-        puts payload
-        puts "\n\n\n"
         Client.send(method: :post, endpoint: endpoint, payload: payload, headers: headers)
       end
 
