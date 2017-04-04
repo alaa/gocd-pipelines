@@ -18,42 +18,33 @@ module GOCD
       group = @flow['group']
 
       @pipelines.each do |pipeline|
-        materials, stages, jobs, tasks = [], [] ,[], []
         env    = pipeline['env']
         pipeline_name = sprintf("%s.%s", group, pipeline['name'])
 
-        pipeline['materials'].each do |material|
+        materials = pipeline['materials'].each_with_object([]) do |material, materials|
           case material['type']
           when 'git'
             materials << GOCD::Material.git(repo: material['repo'], branch: material['branch'])
           when 'dependency'
-            materials << GOCD::Material.dependency(upstream_pipeline: material['upstream_pipeline'],
-                                                   upstream_stage: material['upstream_stage'])
+            materials << GOCD::Material.dependency(upstream_pipeline: material['upstream_pipeline'], upstream_stage: material['upstream_stage'])
           end
         end
 
-        pipeline['stages'].each do |stage|
-          stage["jobs"].each do |job|
-            job['tasks'].each do |task|
+        stages = pipeline['stages'].each_with_object([]) do |stage, stages|
+          jobs = stage["jobs"].each_with_object([]) do |job, jobs|
+            tasks = job['tasks'].each_with_object([]) do |task, tasks|
               case task['type']
               when 'exec'
                 tasks << GOCD::Task.exec(bash_command: task['command'])
               when 'fetch_artifact'
-                tasks << GOCD::Task.fetch_artifact(upstream_pipeline: task['upstream_pipeline'],
-                                                   upstream_stage: task['upstream_stage'],
-                                                   upstream_job: task['upstream_job'])
+                tasks << GOCD::Task.fetch_artifact(upstream_pipeline: task['upstream_pipeline'], upstream_stage: task['upstream_stage'], upstream_job: task['upstream_job'])
               end
             end
             jobs << GOCD::Job.create(name: job['name'], tasks: tasks)
           end
-          stages << GOCD::Stage.create(name: stage['name'],
-                                       manual: stage['manual'],
-                                       jobs: jobs)
+          stages << GOCD::Stage.create(name: stage['name'], manual: stage['manual'], jobs: jobs)
         end
-        GOCD::Pipeline.create(group: group,
-                              name: pipeline_name,
-                              materials: materials,
-                              stages: stages)
+        GOCD::Pipeline.create(group: group, name: pipeline_name, materials: materials, stages: stages)
         GOCD::Env.patch(environment: env, pipelines: { add: [pipeline_name] })
       end
     end

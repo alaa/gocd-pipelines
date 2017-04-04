@@ -1,43 +1,38 @@
 ---
-group: device-registry3
+group: device-registry12
 pipelines:
   - name: build
     env: build
     materials:
       - type: git
         repo: https://github.com/advancedtelematic/rvi_sota_server.git
-        branch: master
+        branch: demo
     stages:
       - name: sbt-release
         manual: false
-        fetch_artifact: false
         jobs:
           - name: sbt-release
             tasks:
               - type: exec
-                fetch_artifact: false
-                command: ./sbt device-registry/docker:publishLocal
-#  - name: ci.deploy
-#    env: build
-#    materials:
-#      - type: git
-#        repo: https://github.com/advancedtelematic/rvi_sota_server.git
-#        branch: master
-#      - type: dependency
-#        upstream_pipeline: device-registry2.sbt-release
-#        upstream_stage: sbt-release
-#    stages:
-#      - name: marathon
-#        manual: false
-#        fetch_artifact: true
-#        jobs:
-#          - name: deploy
-#            tasks:
-#              - type: fetch_artifact
-#                upstream_pipeline: sota-core.build
-#                upstream_stage: build
-#                upstream_job: generate_artifact
-#              - type: exec
-#                fetch_artifact: false
-#                command: echo 'deploying to staging...'
-#
+                command: sbt sota-device_registry/docker:publish && tag=$(git describe); echo ${tag:1}-SNAPSHOT > artifact.txt
+  - name: ci.deploy
+    env: build
+    materials:
+      - type: git
+        repo: git@github.com:advancedtelematic/sota-deploy.git
+        branch: master
+      - type: dependency
+        upstream_pipeline: device-registry12.build
+        upstream_stage: sbt-release
+    stages:
+      - name: marathon
+        manual: false
+        jobs:
+          - name: deploy
+            tasks:
+              - type: fetch_artifact
+                upstream_pipeline: device-registry12.build
+                upstream_stage: sbt-release
+                upstream_job: sbt-release
+              - type: exec
+                command: ./deploy-env/deploy.sh ci device-registry advancedtelematic/sota-device_registry:$(cat artifact.txt)

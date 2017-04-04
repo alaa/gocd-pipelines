@@ -10,12 +10,10 @@ pipelines:
     stages:
       - name: build
         manual: false
-        fetch_artifact: false
         jobs:
           - name: generate_artifact
             tasks:
               - type: exec
-                fetch_artifact: false
                 command: echo alaa > artifact.txt
   - name: ci.deploy
     env: build
@@ -29,7 +27,6 @@ pipelines:
     stages:
       - name: marathon
         manual: false
-        fetch_artifact: true
         jobs:
           - name: deploy
             tasks:
@@ -38,7 +35,6 @@ pipelines:
                 upstream_stage: build
                 upstream_job: generate_artifact
               - type: exec
-                fetch_artifact: false
                 command: echo 'deploying to staging...'
   - name: ci.approve
     env: build
@@ -49,7 +45,6 @@ pipelines:
     stages:
       - name: approve
         manual: true
-        fetch_artifact: true
         jobs:
           - name: approve
             tasks:
@@ -58,7 +53,6 @@ pipelines:
                 upstream_stage: marathon
                 upstream_job: deploy
               - type: exec
-                fetch_artifact: false
                 command: echo 'approving staging build to qa ...'
   - name: qa.deploy
     env: build
@@ -72,7 +66,6 @@ pipelines:
     stages:
       - name: marathon
         manual: false
-        fetch_artifact: true
         jobs:
           - name: deploy
             tasks:
@@ -81,5 +74,4 @@ pipelines:
                 upstream_stage: approve
                 upstream_job: approve
               - type: exec
-                fetch_artifact: false
                 command: echo 'deploying to QA...'
