@@ -22,7 +22,7 @@ pipelines:
         repo: git@github.com:advancedtelematic/sota-deploy.git
         branch: master
       - type: dependency
-        upstream_pipeline: device-registry12.build
+        upstream_pipeline: $group.build
         upstream_stage: sbt-release
     stages:
       - name: marathon
@@ -31,7 +31,7 @@ pipelines:
           - name: deploy
             tasks:
               - type: fetch_artifact
-                upstream_pipeline: device-registry12.build
+                upstream_pipeline: $group.build
                 upstream_stage: sbt-release
                 upstream_job: sbt-release
               - type: exec
@@ -40,7 +40,7 @@ pipelines:
     env: build
     materials:
       - type: dependency
-        upstream_pipeline: device-registry12.ci.deploy
+        upstream_pipeline: $group.ci.deploy
         upstream_stage: marathon
     stages:
       - name: approve
@@ -49,7 +49,7 @@ pipelines:
           - name: approve
             tasks:
               - type: fetch_artifact
-                upstream_pipeline: device-registry12.ci.deploy
+                upstream_pipeline: $group.ci.deploy
                 upstream_stage: marathon
                 upstream_job: deploy
               - type: exec
@@ -61,7 +61,7 @@ pipelines:
         repo: git@github.com:advancedtelematic/sota-deploy.git
         branch: master
       - type: dependency
-        upstream_pipeline: device-registry12.ci.approve
+        upstream_pipeline: $group.ci.approve
         upstream_stage: approve
     stages:
       - name: marathon
@@ -70,7 +70,7 @@ pipelines:
           - name: deploy
             tasks:
               - type: fetch_artifact
-                upstream_pipeline: device-registry12.ci.approve
+                upstream_pipeline: $group.ci.approve
                 upstream_stage: approve
                 upstream_job: approve
               - type: exec
@@ -79,7 +79,7 @@ pipelines:
     env: build
     materials:
       - type: dependency
-        upstream_pipeline: device-registry12.qa.deploy
+        upstream_pipeline: $group.qa.deploy
         upstream_stage: marathon
     stages:
       - name: approve
@@ -88,7 +88,7 @@ pipelines:
           - name: approve
             tasks:
               - type: fetch_artifact
-                upstream_pipeline: device-registry12.qa.deploy
+                upstream_pipeline: $group.qa.deploy
                 upstream_stage: marathon
                 upstream_job: deploy
               - type: exec

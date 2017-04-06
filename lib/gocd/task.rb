@@ -2,11 +2,11 @@ module GOCD
   class Task
     class << self
 
-      def fetch_artifact(upstream_pipeline:, upstream_stage:, upstream_job:)
+      def fetch_artifact(group:, upstream_pipeline:, upstream_stage:, upstream_job:)
         {
           type: "fetch",
           attributes: {
-            pipeline: upstream_pipeline,
+            pipeline: render_group(group: group, upstream: upstream_pipeline),
             stage: upstream_stage,
             job: upstream_job,
             source: "artifact.txt",
@@ -26,6 +26,12 @@ module GOCD
             working_directory: nil
           }
         }
+      end
+
+      private
+
+      def render_group(group:, upstream:)
+        upstream.gsub('$group', group)
       end
     end
   end

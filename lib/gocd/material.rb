@@ -2,11 +2,11 @@ module GOCD
   class Material
     class << self
 
-      def dependency(upstream_pipeline:, upstream_stage:)
+      def dependency(group:, upstream_pipeline:, upstream_stage:)
         {
           type: "dependency",
           attributes: {
-            pipeline: upstream_pipeline,
+            pipeline: render_group(group: group, upstream: upstream_pipeline),
             stage: upstream_stage,
             auto_update: true
           }
@@ -27,6 +27,12 @@ module GOCD
             shallow_clone: true
           }
         }
+      end
+
+      private
+
+      def render_group(group:, upstream:)
+        upstream.gsub('$group', group)
       end
     end
   end
