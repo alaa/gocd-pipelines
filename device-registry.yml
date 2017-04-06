@@ -36,3 +36,60 @@ pipelines:
                 upstream_job: sbt-release
               - type: exec
                 command: ./deploy-env/deploy.sh ci device-registry advancedtelematic/sota-device_registry:$(cat artifact.txt)
+  - name: ci.approve
+    env: build
+    materials:
+      - type: dependency
+        upstream_pipeline: device-registry12.ci.deploy
+        upstream_stage: marathon
+    stages:
+      - name: approve
+        manual: true
+        jobs:
+          - name: approve
+            tasks:
+              - type: fetch_artifact
+                upstream_pipeline: device-registry12.ci.deploy
+                upstream_stage: marathon
+                upstream_job: deploy
+              - type: exec
+                command: echo 'approving staging build to qa ...' && cat artifact.txt
+  - name: qa.deploy
+    env: build
+    materials:
+      - type: git
+        repo: git@github.com:advancedtelematic/sota-deploy.git
+        branch: master
+      - type: dependency
+        upstream_pipeline: device-registry12.ci.approve
+        upstream_stage: approve
+    stages:
+      - name: marathon
+        manual: false
+        jobs:
+          - name: deploy
+            tasks:
+              - type: fetch_artifact
+                upstream_pipeline: device-registry12.ci.approve
+                upstream_stage: approve
+                upstream_job: approve
+              - type: exec
+                command: ./deploy-env/deploy.sh qa device-registry advancedtelematic/sota-device_registry:$(cat artifact.txt)
+  - name: qa.approve
+    env: build
+    materials:
+      - type: dependency
+        upstream_pipeline: device-registry12.qa.deploy
+        upstream_stage: marathon
+    stages:
+      - name: approve
+        manual: true
+        jobs:
+          - name: approve
+            tasks:
+              - type: fetch_artifact
+                upstream_pipeline: device-registry12.qa.deploy
+                upstream_stage: marathon
+                upstream_job: deploy
+              - type: exec
+                command: echo 'approving QA build to production ...' && cat artifact.txt
