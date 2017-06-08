@@ -6,19 +6,13 @@ module GOCD
 
     def initialize(flow)
       @flow = flow
-      #fail GroupNotFound unless @flow.include?('group')
-      #fail PipelineNotFound unless @flow.include?('pipelines')
-      #fail EnvironmentNotFound unless @flow.include?('environments')
-      @pipelines = @flow['pipelines']
-      @environments = @flow['environments']
     end
 
-    def bootstrap
+    def bootstrap_pipelines
       group = @flow['group']
-      @pipelines.each do |pipeline|
-        env    = pipeline['env']
+      @flow['pipelines'].each do |pipeline|
+        env = pipeline['env']
         pipeline_name = sprintf("%s.%s", group, pipeline['name'])
-
         materials = pipeline['materials'].each_with_object([]) do |material, materials|
           case material['type']
           when 'git'
@@ -48,7 +42,7 @@ module GOCD
     end
 
     def bootstrap_environments
-      @environments.each do |name, options|
+      @flow['environments'].each do |name, options|
         GOCD::Env.create(name: name)
         vars = options['environment_variables'].each_with_object([]) do |e, vars|
           vars << {'name' => e.keys.first.to_s, 'value' => e.values.first.to_s}

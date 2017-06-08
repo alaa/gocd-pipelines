@@ -1,8 +1,8 @@
 ---
-group: sota2
+group: sota30
 pipelines:
   - name: build
-    env: alaaenv
+    env: loadtest
     materials:
       - type: git
         repo: https://github.com/advancedtelematic/rvi_sota_server.git
@@ -16,13 +16,13 @@ pipelines:
               - type: exec
                 command: sbt sota-device_registry/docker:publish && tag=$(git describe); echo ${tag:1}-SNAPSHOT > artifact.txt
   - name: ci.deploy
-    env: alaaenv
+    env: loadtest
     materials:
       - type: git
         repo: git@github.com:advancedtelematic/sota-deploy.git
         branch: master
       - type: dependency
-        upstream_pipeline: alaaenvroup.build
+        upstream_pipeline: $group.build
         upstream_stage: sbt-release
     stages:
       - name: marathon
@@ -37,7 +37,7 @@ pipelines:
               - type: exec
                 command: ./deploy-env/deploy.sh ci device-registry advancedtelematic/sota-device_registry:$(cat artifact.txt)
   - name: ci.approve
-    env: alaaenv
+    env: loadtest
     materials:
       - type: dependency
         upstream_pipeline: $group.ci.deploy
@@ -55,7 +55,7 @@ pipelines:
               - type: exec
                 command: echo 'approving staging build to qa ...' && cat artifact.txt
   - name: qa.deploy
-    env: alaaenv
+    env: loadtest
     materials:
       - type: git
         repo: git@github.com:advancedtelematic/sota-deploy.git
@@ -76,7 +76,7 @@ pipelines:
               - type: exec
                 command: ./deploy-env/deploy.sh qa device-registry advancedtelematic/sota-device_registry:$(cat artifact.txt)
   - name: qa.approve
-    env: alaaenv
+    env: loadtest
     materials:
       - type: dependency
         upstream_pipeline: $group.qa.deploy
