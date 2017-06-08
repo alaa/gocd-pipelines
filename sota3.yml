@@ -1,5 +1,10 @@
 ---
-group: sota2
+environments:
+  alaa10:
+    environment_variables:
+      - vault_address: http://secrets.blabla.bla
+      - key: http://secrets.blabla.bla
+group: sota3
 pipelines:
   - name: build
     env: alaaenv
@@ -22,7 +27,7 @@ pipelines:
         repo: git@github.com:advancedtelematic/sota-deploy.git
         branch: master
       - type: dependency
-        upstream_pipeline: alaaenvroup.build
+        upstream_pipeline: $group.build
         upstream_stage: sbt-release
     stages:
       - name: marathon

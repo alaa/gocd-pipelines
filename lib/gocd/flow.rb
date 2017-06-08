@@ -5,18 +5,16 @@ module GOCD
     attr_accessor :flow, :pipelines
 
     def initialize(flow)
-      #TODO: validate ymal schema.
       @flow = flow
-      fail GroupNotFound unless @flow.include?('group')
-      fail PipelineNotFound unless @flow.include?('pipelines')
-
+      #fail GroupNotFound unless @flow.include?('group')
+      #fail PipelineNotFound unless @flow.include?('pipelines')
+      #fail EnvironmentNotFound unless @flow.include?('environments')
       @pipelines = @flow['pipelines']
+      @environments = @flow['environments']
     end
 
     def bootstrap
-      #TODO: Refactor.
       group = @flow['group']
-
       @pipelines.each do |pipeline|
         env    = pipeline['env']
         pipeline_name = sprintf("%s.%s", group, pipeline['name'])
@@ -49,10 +47,21 @@ module GOCD
       end
     end
 
-    class GroupNotFound    < Exception; end
-    class MaterialNotFound < Exception; end
-    class PipelineNotFound < Exception; end
-    class JobNotFound      < Exception; end
-    class TaskNotFound     < Exception; end
+    def bootstrap_environments
+      @environments.each do |name, options|
+        GOCD::Env.create(name: name)
+        vars = options['environment_variables'].each_with_object([]) do |e, vars|
+          vars << {'name' => e.keys.first.to_s, 'value' => e.values.first.to_s}
+        end
+        GOCD::Env.update(name: name, environment_variables: vars)
+      end
+    end
+
+    class GroupNotFound       < Exception; end
+    class MaterialNotFound    < Exception; end
+    class PipelineNotFound    < Exception; end
+    class EnvironmentNotFound < Exception; end
+    class JobNotFound         < Exception; end
+    class TaskNotFound        < Exception; end
   end
 end

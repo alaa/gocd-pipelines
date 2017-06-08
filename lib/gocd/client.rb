@@ -9,9 +9,14 @@ module GOCD
       def send(method:, endpoint:, payload:, headers:)
         fail NotAllowedMethod unless ALLOWED_METHODS.include?(method)
         begin
-          RestClient.public_send(method, uri(endpoint), payload, headers)
-        rescue RestClient::ExceptionWithResponse => err
-          GOCD.logger.error(sprintf("Error %s. %s", name, err))
+          if payload
+            p RestClient.public_send(method, uri(endpoint), payload, headers)
+          else
+            p RestClient.public_send(method, uri(endpoint), headers)
+          end
+        rescue RestClient::ExceptionWithResponse => e
+          p e
+          return e.response
         end
       end
 

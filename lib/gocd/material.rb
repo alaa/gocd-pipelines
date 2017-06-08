@@ -32,6 +32,7 @@ module GOCD
       private
 
       def render_group(group:, upstream:)
+        puts "============> GROUP IS: #{group}"
         upstream.gsub('$group', group)
       end
     end
